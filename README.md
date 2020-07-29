@@ -52,7 +52,6 @@ Notes:
 ```
 PymtChan:
     Create          from,to,amt
-    [PVouchers]
     Settle          pch_addr
                         {
                             smsg_cid = api.PaychSettle(pch_addr)
@@ -68,7 +67,7 @@ PymtChan:
                             wait for smsg_cid
                             if exitcode==0, print success messsage and done
                         }
-    Collect/(Close) pch_addr
+    Collect          pch_addr
                         {
                             mcid = api.PaychCollect(pch_addr)
                                 {
