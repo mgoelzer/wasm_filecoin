@@ -1,4 +1,4 @@
-# Javascript Example using Rust WASM Payment Channel Functions
+## Javascript Example using Rust WASM Payment Channel Functions
 
 Clone these two repos in side-by-side directories:
  - https://github.com/mgoelzer/wasm_filecoin 
@@ -13,14 +13,14 @@ Clone these two repos in side-by-side directories:
     └── ...
 ```
 
-## Build the Rust code
+### Build the Rust code
 
 ```
 cd filecoin-signing-tools
 make
 ```
 
-## Build and run the wasm code
+### Build and run the wasm code
 
 ```
 cd wasm_filecoin
@@ -29,7 +29,7 @@ npm run-script build
 npm run-script start
 ```
 
-## To experiment
+### To experiment
 
 #### Modifying the Rust code
 
@@ -41,3 +41,125 @@ vi signer-npm/src/...
 
 then `make` from the root directory (as above).
 
+## How to Add More Payment Channel Functions      
+
+### go-lotus Payment Channels Flow
+
+...Diagram...
+
+Notes:
+
+```
+PymtChan:
+    Create          from,to,amt
+    [PVouchers]
+    Settle          pch_addr
+                        {
+                            smsg_cid = api.PaychSettle(pch_addr)
+                                {
+                                    ci := a.PaychMgr.GetChannelInfo(pch_addr)
+                                    smsg_cid = MPoolPushMessage Message{
+                                        To:  pch_addr,
+                                        From:  ci.Control,
+                                        Value:  0,
+                                        Method:  builtin.MethodsPaych.Settle
+                                    }                                    
+                                }
+                            wait for smsg_cid
+                            if exitcode==0, print success messsage and done
+                        }
+    Collect/(Close) pch_addr
+                        {
+                            mcid = api.PaychCollect(pch_addr)
+                                {
+                                    ci := a.PaychMgr.GetChannelInfo(pch_addr)
+                                    smsg_cid = MPoolPushMessage Message{
+                                        To:  pch_addr,
+                                        From:  ci.Control,
+                                        Value:  0,
+                                        Method:  builtin.MethodsPaych.Collect
+                                    }
+                                    return smsg_cid
+                                }
+                            wait for smsg_cid on chain
+                            if exitcode==0, print success messsage and done
+                        }
+
+PchVouchers:
+    Create          pch_addr, amount, lane(=0)
+                        {
+                            sv *paych.SignedVoucher = api.PaychVoucherCreate(pch_addr,amount,lane)
+                                {
+                                    nonce = api.PaychMgr.NextNonceForLane(pch_addr,lane)
+                                    sv = {pch_addr,amount,lane,nonce,sig}
+                                    _ = a.PaychMgr.AddVoucher(pch_addr,sv)
+                                    return sv
+                                }
+                            enc = EncodedString(sv)
+                                {
+                                    - sv marshalls itself into cbor bytes
+                                    - those bytes are encoded to unpadded base64
+                                }
+                        }
+    CheckValid      pch_addr, voucher_str
+                        {
+                            sv = [decoded version of voucher_str]
+                            err = api.PaychVoucherCheckValid(ch, sv)
+                            voucher is valid UNLESS err
+                        }
+    Add             pch_addr, voucher_str
+                        {
+                            sv *paych.SignedVoucher = [decoded string version of voucher from Create]
+                            _ = api.PaychVoucherAdd(pch_addr, sv, proof []byte = NIL, minDelta big.Int = 0)
+                        }
+    BestSpendable   pch_addr
+                        {
+                            vouchers = api.PaychVoucherList(pch_addr)
+                            for v in vouchers {
+                                api.PaychVoucherCheckSpendable(pch_addr, v, ??? []byte = NIL, ??? []byte = NIL)
+                                if v is larger than previous best spendable:
+                                    v is new best spendable
+                            }
+                            print the best spendable
+                        }
+    Submit          pch_addr, voucher_str
+                        {
+                            sv = [decoded version of voucher_str]
+                            mcid = api.PaychVoucherSubmit(pch_addr, sv)
+                            wait for mcid
+                            if exitcode==0, print success messsage and done
+                        }
+```
+
+### How to Add More Payment Channels Functions to `filecoin-signing-tools`
+
+- Capture the bytes on the wire generated by Lotus for test vectors you can use in your `#[test]` routines
+
+#### `../filecoin-signing-tools/extras/src/lib.rs`
+ - Copy/adapt `pub struct PymtChanCreateParams` if you have a constructor params marshalled inside your encoded Params structure
+
+#### `../filecoin-signing-tools/signer/src/lib.rs`
+ - Add a `#[test]` function like `payment_channel_creation_secp256k1_signing()`
+ - Create `signer/src/lib.rs` analog of create_pymtchan called e.g. `update_pymtchan_chan_state`
+
+#### `../filecoin-signing-tools/signer/src/api.rs`
+ - Copy/adapt `struct PaymentChannelCreateParams` and `TryFrom` directly below it.  PaymentChannelCreateParams corresponds to `PymtChanCreateParams`
+ - Copy/adapt `struct MessageParamsPaymentChannelCreate` and the `TryFrom` directly below it. MessageParamsPaymentChannelCreate is the outer Params for your message.
+ - Add 1 or 2 elements to `enum MessageParams` for your analogs of `PaymentChannelCreateParams` and `MessageParamsPaymentChannelCreate`
+ - Add 1 or 2 blocks to `MessageParams:serialize()` to serialize your analogs of `PaymentChannelCreateParams` and `MessageParamsPaymentChannelCreate`
+
+#### `../filecoin-signing-tools/signer-npm/src/lib.rs`
+ - Create a `create_pymtchan`-like function here that is callable from js as wasm:
+```
+#[wasm_bindgen(js_name = createPymtChan)]
+pub fn create_pymtchan() {}
+```
+
+#### `index.js`
+ - Call you new `signer-npm/src/lib.rs`:`create_pymtchan()` from your `index.js`
+
+### Possibly Useful Tools
+
+#### github.com/mgoelzer/lotus#hex_instrumented
+
+The [`hex_instrumented` branch of github.com/mgoelzer/lotus (fork)](https://github.com/mgoelzer/lotus/tree/hex_instrumented) will fmt.Printf() the actual messages being sent to the chain.  Useful for generating test vectors.
