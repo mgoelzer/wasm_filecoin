@@ -5,7 +5,7 @@ This is a demonstration repo for the Payment Channel (PCH) exntensions to Zondax
 - [Development Status](#development-status)
 - [Build and Run](#build-and-run)
 - [How to Add More Payment Channel Functions](#how-to-add-more-payment-channel-functions)
-- [How to Add More Payment Channels Functions to filecoin-signing-tools](#how-to-add-more-payment-channels-functions-to-filecoin-signing-tools)
+- [How Lotus Does Payment Channels](#how-lotus-does-payment-channels)
 - [Contributing](#contributing)
 - [Possibly Useful Tools](#possible-useful-tools)
 - [Contributing](#contributing)
@@ -78,114 +78,6 @@ then `make` from the root directory (as above).
 
 ## How to Add More Payment Channel Functions      
 
-### go-lotus Payment Channels Flow
-
-![Diagram](/pch-diagram.png)
-
-In the normal case:
-
-1.  Payer (green) creates the payment channel (PCH).
-
-2.  Payer (green) then creates a voucher and passes it to the payee (blue)
-
-3.  Payee (blue) checks it and adds it to the list of vouchers for the lane being used.
-
-4.  The cycle can continue as many times as necessary.  At some point, payer (green) calls Settle.
-
-5-6.  Payee (blue) now has ~12 hours to Submit its best voucher before the channel can be Collected.
-
-The above diagram illustrates the general PCH concept under "normal" retrieval circumstances.  For a complete description of the retrieval client and provider state machines, see [go-fil-markets/retrievalmarket](https://github.com/filecoin-project/go-fil-markets/tree/master/retrievalmarket).
-
-### Code Notes
-
-The notes below describe what Lotus is doing at each step mentioned above.
-
-**Payment Channels**
-
-```
-  * Create          from,to,amt
-  * Settle          pch_addr
-                        {
-                            smsg_cid = api.PaychSettle(pch_addr)
-                                {
-                                    ci := a.PaychMgr.GetChannelInfo(pch_addr)
-                                    smsg_cid = MPoolPushMessage Message{
-                                        To:  pch_addr,
-                                        From:  ci.Control,
-                                        Value:  0,
-                                        Method:  builtin.MethodsPaych.Settle
-                                    }                                    
-                                }
-                            wait for smsg_cid
-                            if exitcode==0, print success messsage and done
-                        }
-  * Collect          pch_addr
-                        {
-                            mcid = api.PaychCollect(pch_addr)
-                                {
-                                    ci := a.PaychMgr.GetChannelInfo(pch_addr)
-                                    smsg_cid = MPoolPushMessage Message{
-                                        To:  pch_addr,
-                                        From:  ci.Control,
-                                        Value:  0,
-                                        Method:  builtin.MethodsPaych.Collect
-                                    }
-                                    return smsg_cid
-                                }
-                            wait for smsg_cid on chain
-                            if exitcode==0, print success messsage and done
-                        }
-```
-
-**Payment Vouchers**
-
-```
-  * Create          pch_addr, amount, lane(=0)
-                        {
-                            sv *paych.SignedVoucher = api.PaychVoucherCreate(pch_addr,amount,lane)
-                                {
-                                    nonce = api.PaychMgr.NextNonceForLane(pch_addr,lane)
-                                    sv = {pch_addr,amount,lane,nonce,sig}
-                                    _ = a.PaychMgr.AddVoucher(pch_addr,sv)
-                                    return sv
-                                }
-                            enc = EncodedString(sv)
-                                {
-                                    - sv marshalls itself into cbor bytes
-                                    - those bytes are encoded to unpadded base64
-                                }
-                        }
-  * CheckValid      pch_addr, voucher_str
-                        {
-                            sv = [decoded version of voucher_str]
-                            err = api.PaychVoucherCheckValid(ch, sv)
-                            voucher is valid UNLESS err
-                        }
-  * Add             pch_addr, voucher_str
-                        {
-                            sv *paych.SignedVoucher = [decoded string version of voucher from Create]
-                            _ = api.PaychVoucherAdd(pch_addr, sv, proof []byte = NIL, minDelta big.Int = 0)
-                        }
-  * Submit          pch_addr, voucher_str
-                        {
-                            // Lotus breaks this BestSpendable as a separate API call
-                            func BestSpendable() -> types.SignedVoucher {
-                                vouchers = api.PaychVoucherList(pch_addr)
-                                for v in vouchers {
-                                    api.PaychVoucherCheckSpendable(pch_addr, v, unused, unused)
-                                    if v is larger than previous best spendable:
-                                        v is now the best spendable
-                                }
-                            }
-                            sv = bestSpendable()
-                            mcid = api.PaychVoucherSubmit(pch_addr, sv)
-                            wait for mcid
-                            if exitcode==0, print success messsage and done
-                        }
-```
-
-### How to Add More Payment Channels Functions to `filecoin-signing-tools`
-
 - Capture the bytes on the wire generated by Lotus for test vectors you can use in your `#[test]` routines
 
 #### [`../filecoin-signing-tools/extras/src/lib.rs`](https://github.com/mgoelzer/filecoin-signing-tools/blob/master/extras/src/lib.rs)
@@ -210,6 +102,26 @@ pub fn create_pymtchan() {}
 
 #### [`index.js`](index.js)
  - Call you new `signer-npm/src/lib.rs`:`create_pymtchan()` from your `index.js`
+
+### How Lotus Does Payment Channels
+
+![Diagram](/pch-diagram.png)
+
+In the normal case:
+
+1.  Payer (green) creates the payment channel (PCH).
+
+2.  Payer (green) then creates a voucher and passes it to the payee (blue)
+
+3.  Payee (blue) checks it and adds it to the list of vouchers for the lane being used.
+
+4.  The cycle can continue as many times as necessary.  At some point, payer (green) calls Settle.
+
+5-6.  Payee (blue) now has ~12 hours to Submit its best voucher before the channel can be Collected.
+
+The above diagram illustrates the general PCH concept under "normal" retrieval circumstances.  For a complete description of the retrieval client and provider state machines, see [go-fil-markets/retrievalmarket](https://github.com/filecoin-project/go-fil-markets/tree/master/retrievalmarket).
+
+There are some code-level notes in this repo on [how Lotus performs payment channel operations](/lotus-code-notes.md).
 
 ### Contributing
 
