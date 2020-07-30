@@ -1,9 +1,31 @@
-# Javascript Example using Rust Wasm Payment Channel Functions
+# Payment Channel Extensions to [filecoin-signing-tools](https://github.com/Zondax/filecoin-signing-tools)
 
+This is a demonstration repo for the Payment Channel (PCH) exntensions to Zondax's rust-filecoin-signer being developed in [this temporary fork of filecoin-signing-tools](https://github.com/mgoelzer/filecoin-signing-tools).  This repo shows how to compile and run the Wasm code in a browser, but does not do anything useful.
+
+- [Development Status](#development-status)
 - [Build and Run](#build-and-run)
 - [How to Add More Payment Channel Functions](#how-to-add-more-payment-channel-functions)
 - [How to Add More Payment Channels Functions to filecoin-signing-tools](#how-to-add-more-payment-channels-functions-to-filecoin-signing-tools)
+- [Contributing](#contributing)
 - [Possibly Useful Tools](#possible-useful-tools)
+
+## Developmennt Status
+
+> Legend: :green_apple: Done &nbsp; :lemon: In Progress &nbsp; :tomato: Not started
+
+| **Payment Channels (PCH)**                   |  API Demonstrated  | Comment                           |
+| -------------------------------------------- | :----------------: | :-------------------------------: | 
+| Create PCH                                   |   :green_apple:    |                                   | 
+| Update PCH State                             |     :tomato:       |                                   | 
+| Settle PCH                                   |     :tomato:       |                                   | 
+| Collect PCH                                  |     :tomato:       |                                   | 
+
+| **Payment Vouchers**                         |  API Demonstrated  | Comment                           |
+| -------------------------------------------- | :----------------: | :-------------------------------: | 
+| Create Voucher                               |     :tomato:       |                                   | 
+| Verify Voucher                               |     :tomato:       |                                   | 
+| Add Voucher to PCH                           |     :tomato:       |                                   | 
+| Submit Best-spendable Voucher                |     :tomato:       |                                   | 
 
 ## Build and Run
 
@@ -67,6 +89,8 @@ In the normal case:
 4.  The cycle can continue as many times as necessary.  At some point, payer (green) calls Settle.
 
 5-6.  Payee (blue) now has ~12 hours to Submit its best voucher before the channel can be Collected.
+
+The above diagram illustrates the general PCH concept under "normal" retrieval circumstances.  For a complete description of the retrieval client and provider state machines, see [go-fil-markets/retrievalmarket](https://github.com/filecoin-project/go-fil-markets/tree/master/retrievalmarket).
 
 ### Code Notes
 
@@ -182,6 +206,12 @@ pub fn create_pymtchan() {}
 
 #### [`index.js`](index.js)
  - Call you new `signer-npm/src/lib.rs`:`create_pymtchan()` from your `index.js`
+
+### Contributing
+
+The purpose of this repo (and its [sister repo](https://github.com/mgoelzer/filecoin-signing-tools/)) are to prepare a reusable, Javascript/Rust library for creating and manipulationg Filecoin payment channels without relying on Lotus.  This code will either become a crate that runs on top of Zondax's [filecoin-signing-tools](https://github.com/Zondax/filecoin-signing-tools/) or be merged into Zondax's library.
+
+The issues in this repo describe the work remaining to provide sufficient Filecoin payment channel to support to enable a retrieval network of browser-based clients.
 
 ### Possibly Useful Tools
 
