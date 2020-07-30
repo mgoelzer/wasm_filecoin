@@ -10,7 +10,6 @@ This is a demonstration repo for the Payment Channel (PCH) exntensions to Zondax
 - [Possibly Useful Tools](#possible-useful-tools)
 - [Contributing](#contributing)
 - [Licensing](#licensing)
-- [Why the fork?][#why-the-fork]
 
 ## Developmennt Status
 
@@ -44,6 +43,8 @@ Clone these two repos in side-by-side directories:
 └── filecoin-signing-tools/
     └── ...
 ```
+
+(Side-by-side because `wasm_filecoin` expects to find code from `filecoin-signing-tools` using a `../filecoin-signing-tools/` path.  You can change that on the first line of `index.js` if you prefer.)
 
 ### Build the Rust code
 
