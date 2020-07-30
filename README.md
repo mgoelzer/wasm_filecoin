@@ -8,6 +8,9 @@ This is a demonstration repo for the Payment Channel (PCH) exntensions to Zondax
 - [How to Add More Payment Channels Functions to filecoin-signing-tools](#how-to-add-more-payment-channels-functions-to-filecoin-signing-tools)
 - [Contributing](#contributing)
 - [Possibly Useful Tools](#possible-useful-tools)
+- [Contributing](#contributing)
+- [Licensing](#licensing)
+- [Why the fork?][#why-the-fork]
 
 ## Developmennt Status
 
@@ -218,3 +221,11 @@ The issues in this repo describe the work remaining to provide sufficient Fileco
 #### [github.com/mgoelzer/lotus#hex_instrumented](https://github.com/mgoelzer/lotus/tree/hex_instrumented)
 
 The [`hex_instrumented` branch of github.com/mgoelzer/lotus (fork)](https://github.com/mgoelzer/lotus/tree/hex_instrumented) will fmt.Printf() the actual messages being sent to the chain.  Useful for generating test vectors.
+
+## Contributing
+
+Contributions are welcome.  Check out the [issues](/issues) for a start.
+
+## License
+
+Dual-licensed under [MIT](https://github.com/filecoin-project/lotus/blob/master/LICENSE-MIT) + [Apache 2.0](https://github.com/filecoin-project/lotus/blob/master/LICENSE-APACHE)
