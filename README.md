@@ -13,21 +13,19 @@ This is a demonstration repo for the Payment Channel (PCH) exntensions to Zondax
 
 ## Developmennt Status
 
-> Legend: :green_apple: Done &nbsp; :lemon: In Progress &nbsp; :tomato: Not started
+| **Payment Channels (PCH)**                   |  Status  | 
+| -------------------------------------------- | :----------------: | 
+| Create PCH                                   |:white_check_mark:  |
+| Update PCH State                             |     :x:       |
+| Settle PCH                                   |     :x:       |
+| Collect PCH                                  |     :x:       |
 
-| **Payment Channels (PCH)**                   |  API Demonstrated  | Comment                           |
-| -------------------------------------------- | :----------------: | :-------------------------------: | 
-| Create PCH                                   |   :green_apple:    |                                   | 
-| Update PCH State                             |     :tomato:       |                                   | 
-| Settle PCH                                   |     :tomato:       |                                   | 
-| Collect PCH                                  |     :tomato:       |                                   | 
-
-| **Payment Vouchers**                         |  API Demonstrated  | Comment                           |
-| -------------------------------------------- | :----------------: | :-------------------------------: | 
-| Create Voucher                               |     :tomato:       |                                   | 
-| Verify Voucher                               |     :tomato:       |                                   | 
-| Add Voucher to PCH                           |     :tomato:       |                                   | 
-| Submit Best-spendable Voucher                |     :tomato:       |                                   | 
+| **Payment Vouchers**                         |  Status  |
+| -------------------------------------------- | :----------------: |
+| Create Voucher                               |     :x:       | 
+| Verify Voucher                               |     :x:       |
+| Add Voucher to PCH                           |     :x:       |
+| Submit Best-spendable Voucher                |     :x:       |
 
 ## Build and Run
 
