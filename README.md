@@ -17,8 +17,8 @@ This is a demonstration repo for the Payment Channel (PCH) exntensions to Zondax
 | -------------------------------------------- | :----------------: | 
 | Create PCH                                   |:white_check_mark:  |
 | Update PCH State                             |     :x:       |
-| Settle PCH                                   |     :x:       |
-| Collect PCH                                  |     :x:       |
+| Settle PCH                                   |  :airplane:       |
+| Collect PCH                                  |  :airplane:       |
 
 | **Payment Vouchers**                         |  Status  |
 | -------------------------------------------- | :----------------: |
