@@ -47,11 +47,12 @@ Clone these two repos in side-by-side directories:
 ### Build the Rust code
 
 ```
+export RUSTC_WRAPPER=sccache
 cd filecoin-signing-tools
 make
 ```
 
-### Prepare and Run the Wasm Code
+### Prepare and Run This Repo
 
 ```
 cd wasm_filecoin
@@ -61,18 +62,6 @@ npm run-script start
 ```
 
 Browse to [https://localhost:8080/](https://localhost:8080/)
-
-### To experiment
-
-#### Modifying the Rust code
-
-```
-cd filecoin-signing-tools
-vi signer/src/...
-vi signer-npm/src/...
-```
-
-then `make` from the root directory (as above).
 
 ## How to Add More Payment Channel Functions      
 
