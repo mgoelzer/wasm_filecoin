@@ -48,8 +48,27 @@ The notes below describe what Lotus is doing at each step mentioned above.
                             sv *paych.SignedVoucher = api.PaychVoucherCreate(pch_addr,amount,lane)
                                 {
                                     nonce = api.PaychMgr.NextNonceForLane(pch_addr,lane)
+                                    
+                                    sig = sign with from_addr (whoever created pch) over [entire SignedVoucher struct except Signature=nil]
                                     sv = {pch_addr,amount,lane,nonce,sig}
+
                                     _ = a.PaychMgr.AddVoucher(pch_addr,sv)
+                                        {
+                                            if ! paychMgr.CheckVoucherValid(pch_addr,sv) return;
+
+                                            ci = getChannelInfo(pch_addr)
+
+                                            laneState = laneState(pch_addr, sv.Lane) else return
+
+                                            ci.Vouchers = append(ci.Vouchers, &VoucherInfo{
+                                                Voucher: sv,
+                                                Proof:   proof,
+                                            })
+
+                                            if ci.NextLane <= (sv.Lane) {
+                                                ci.NextLane = sv.Lane + 1
+                                            }
+                                        }
                                     return sv
                                 }
                             enc = EncodedString(sv)
@@ -82,6 +101,23 @@ The notes below describe what Lotus is doing at each step mentioned above.
                             }
                             sv = bestSpendable()
                             mcid = api.PaychVoucherSubmit(pch_addr, sv)
+                                {
+                                        enc, err := actors.SerializeParams(&paych.UpdateChannelStateParams{
+                                            Sv: *sv,
+                                        })
+
+                                    	msg := &types.Message{
+                                        From:     ci.Control,
+                                        To:       ch,
+                                        Value:    types.NewInt(0),
+                                        Nonce:    nonce,
+                                        Method:   builtin.MethodsPaych.UpdateChannelState,
+                                        Params:   enc,
+                                        GasLimit: 100000,
+                                        GasPrice: types.NewInt(0),
+                                    }
+
+                                }
                             wait for mcid
                             if exitcode==0, print success messsage and done
                         }
